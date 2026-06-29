@@ -72,7 +72,7 @@ def process(all_data, timerange, lompe_dir, cores=1, med_filter=True, scandelta_
 
     # Only initialize Ray if it isn't already running.
     if not ray.is_initialized():
-        ray.init(num_cpus=cores, include_dashboard=False)
+        ray.init(num_cpus=cores)
 
     scan_delta_id     = ray.put(scan_delta)
     darn_grid_stuff_id = ray.put(darn_grid_stuff)
@@ -132,7 +132,8 @@ def process(all_data, timerange, lompe_dir, cores=1, med_filter=True, scandelta_
             pending.append((rid, submitted))
             submitted += 1
 
-    ray.shutdown()
+    if not ray.is_initialized():
+        ray.shutdown()
 
     fbi_save_hdf5(lompes, timerange, lompe_dir)
 

@@ -25,7 +25,8 @@ def read_fitacfs(fitacf_files, cores=1, start=None, end=None):
     os.environ['RAY_DEDUP_LOGS'] = '0'
     import ray
 
-    ray.init(num_cpus=cores)
+    if not ray.is_initialized():
+        ray.init(num_cpus=cores)
 
     @ray.remote
     def sdarnreadmulti(fitacf_file, start=None, end=None):
@@ -70,7 +71,10 @@ def read_fitacfs(fitacf_files, cores=1, start=None, end=None):
     end_id = ray.put(end)
     all_data = ray.get([sdarnreadmulti.remote(inp, start_id, end_id) for inp in fitacf_files])
     all_data = [x for x in all_data if x and x is not None]  # Gets rid of empty lists and None's
-    ray.shutdown()
+
+    if not ray.is_initialized():
+        ray.shutdown()
+
     return all_data
 
 
